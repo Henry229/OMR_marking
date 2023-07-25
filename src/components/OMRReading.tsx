@@ -1,4 +1,4 @@
-import cv from 'opencv';
+import cv from 'jsfeat';
 import ReadOMR from './ReadOMR';
 
 export default function OMRReading() {
