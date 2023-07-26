@@ -1,15 +1,20 @@
 'use client';
 
-import { ChangeEvent, DragEvent, useState } from 'react';
+import { ChangeEvent, DragEvent, FormEvent, useState } from 'react';
 import GridSpinner from './ui/GridSpinner';
 import FilesIcon from './ui/FileIcon';
 import Image from 'next/image';
+import Button from './ui/Button';
+import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
 
-export default function ReadOMR() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>();
-  const [file, setFile] = useState<File>();
+export default function InputOMR() {
+  const { data, isLoading, error } = useSWR('/api/opencv');
   const [dragging, setDragging] = useState(false);
+  const [file, setFile] = useState<File>();
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState<string>();
+  const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -40,16 +45,30 @@ export default function ReadOMR() {
     }
   };
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+  };
+
   return (
-    <section>
+    <section className='flex flex-col items-center w-full max-w-xl mt-6'>
       {loading && (
-        <div>
+        <div className='absolute inset-0 z-20 text-center pt-[30%] bg-sky-500/20'>
           <GridSpinner />
         </div>
       )}
-      {error && <p>{error}</p>}
-      <form>
+      {error && (
+        <p className='w-full p-4 mb-4 font-bold text-center text-red-600 bg-red-100'>
+          {error}
+        </p>
+      )}
+      <form className='flex flex-col w-full mt-2' onSubmit={handleSubmit}>
         <input
+          className='hidden'
           type='file'
           name='input'
           id='input-upload'
@@ -57,6 +76,9 @@ export default function ReadOMR() {
           onChange={handleChange}
         />
         <label
+          className={`w-full h-60 flex flex-col items-center justify-center ${
+            !file && 'border-2 border-sky-500 border-dashed'
+          }`}
           htmlFor='input_upload'
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -84,6 +106,7 @@ export default function ReadOMR() {
             </div>
           )}
         </label>
+        <Button text='Upload' onClick={() => {}} />
       </form>
     </section>
   );

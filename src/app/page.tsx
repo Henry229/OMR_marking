@@ -1,9 +1,9 @@
-import OMRReading from '@/components/OMRReading';
+import InputOMR from '@/components/InputOMR';
 
 export default function HomePage() {
   return (
     <>
-      <OMRReading />
+      <InputOMR />
     </>
   );
 }

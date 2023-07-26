@@ -1,5 +1,5 @@
-import cv from 'jsfeat';
-import ReadOMR from './ReadOMR';
+import imread from 'jsfeat';
+import ReadOMR from './InputOMR';
 
 export default function OMRReading() {
   return (
@@ -10,7 +10,7 @@ export default function OMRReading() {
 }
 
 // Load the image
-const img = cv.imread('path/to/image.jpg');
+const img = imread('path/to/image.jpg');
 
 // Convert to grayscale
 const grayImg = img.cvtColor(cv.COLOR_BGR2GRAY);
