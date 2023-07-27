@@ -9,11 +9,11 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 
 export default function InputOMR() {
-  const { data, isLoading, error } = useSWR('/api/opencv');
+  // const { data, isLoading: loading, error } = useSWR('/api/opencv');
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File>();
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState<string>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>();
   const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -52,6 +52,18 @@ export default function InputOMR() {
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
+
+    fetch('/api/posts', { method: 'POST', body: formData }) //
+      .then((res) => {
+        if (!res.ok) {
+          setError(`${res.status} ${res.statusText}`);
+          return;
+        }
+        // api로 db에 insert가 제대로 이뤄졌다면 홈 경로로 이동한다.
+        router.push('/');
+      })
+      .catch((err) => setError(err.toString()))
+      .finally(() => setLoading(false));
   };
 
   return (
