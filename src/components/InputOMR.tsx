@@ -52,8 +52,9 @@ export default function InputOMR() {
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
+    console.log('>>> file:', file);
 
-    fetch('/api/posts', { method: 'POST', body: formData }) //
+    fetch('/api/readOMR', { method: 'POST', body: formData }) //
       .then((res) => {
         if (!res.ok) {
           setError(`${res.status} ${res.statusText}`);
