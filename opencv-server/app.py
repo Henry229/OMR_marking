@@ -1,23 +1,37 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 import cv2
 import numpy as np
 import base64
 import io
 
 app = Flask(__name__)
+CORS(app)
+
 
 @app.route('/')
 def index():
     return 'Hello, world!'
 
+
 @app.route('/readOMR', methods=['POST'])
 def read_omr():
     data = request.get_json()
+    # print('request', data)
     image_data = data.get('image')
+    if ',' in image_data:
+        image_data = image_data.split(',')[1]
+    # data = request.files['file']
+    # print('request', data)
 
     # 이미지 데이터를 base64로 디코딩하고 NumPy 배열로 변환
     nparr = np.frombuffer(base64.b64decode(image_data), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    if img is None:
+        print("Image was not loaded properly")
+        return jsonify({'error': 'Image was not loaded properly'})
 
     # 이미지 전처리
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -26,8 +40,15 @@ def read_omr():
     # 이진화
     _, binary = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV)
 
+    # 처리된 이미지를 base64로 인코딩
+    is_success, im_buf_arr = cv2.imencode(".jpg", binary)
+    byte_im = im_buf_arr.tobytes()
+    base64_bytes = base64.b64encode(byte_im)
+    base64_string = base64_bytes.decode('utf-8')
+
     # 마크 감지
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # 마크 필터링
     marks = []
@@ -41,9 +62,11 @@ def read_omr():
         'status': 'success',
         'message': 'Image processed successfully',
         'data': len(marks),
+        'image': base64_string
         # 'data': ...  # 처리된 이미지 데이터 또는 결과를 여기에 추가
     }
     return jsonify(result)
 
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=4000)

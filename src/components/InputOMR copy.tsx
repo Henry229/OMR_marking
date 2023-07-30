@@ -8,13 +8,12 @@ import Button from './ui/Button';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 
-export default function InputOMR() {
+export default function InputOMR1() {
   // const { data, isLoading: loading, error } = useSWR('/api/opencv');
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
-  const [processedImage, setProcessedImage] = useState<string>();
   const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -46,15 +45,6 @@ export default function InputOMR() {
     }
   };
 
-  const handleResponse = (response: Response) => {
-    response.json().then((data) => {
-      if (data.image) {
-        setProcessedImage(`data:image/jpeg;base64,${data.image}`);
-      }
-    });
-    router.push('/');
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) return;
@@ -77,14 +67,18 @@ export default function InputOMR() {
         setLoading(false);
         return;
       }
-      const imageData = base64String.split(',')[1];
-      // console.log(imageData);
+      // const base64String = reader.result;
+      const formData = new FormData();
+      formData.append('file', base64String);
+      const encodingData = { image: base64String };
+      // console.log('### file:', base64String);
 
-      fetch('http://localhost:4000/readOMR', {
+      fetch('/api/readOMR', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // body: formData,
-        body: JSON.stringify({ image: imageData }),
+        // headers: { 'Content-Type': 'multipart/form-data' },
+        // headers: { 'Content-Type': 'application/json' },
+        body: formData,
+        // body: JSON.stringify(encodingData),
       }) //
         .then((res) => {
           if (!res.ok) {
@@ -92,10 +86,8 @@ export default function InputOMR() {
             return;
           }
           // api로 db에 insert가 제대로 이뤄졌다면 홈 경로로 이동한다.
-          return res.json();
-          // router.push('/');
+          router.push('/');
         })
-        .then(handleResponse)
         .catch((err) => setError(err.toString()))
         .finally(() => setLoading(false));
     };
@@ -157,7 +149,6 @@ export default function InputOMR() {
         </label>
         <Button text='Upload' onClick={() => {}} />
       </form>
-      {processedImage && <Image src={processedImage} alt='Processed image' />}
     </section>
   );
 }
