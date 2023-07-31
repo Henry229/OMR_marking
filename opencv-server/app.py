@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 import cv2
 import numpy as np
+import json
 import base64
 import io
 
@@ -56,13 +57,27 @@ def read_omr():
         area = cv2.contourArea(contour)
         if 100 < area < 500:  # 마크의 크기에 따라 이 값들을 조정해야 할 수 있습니다.
             marks.append(contour)
+            # Get the bounding rectangle of the contour
+            x, y, w, h = cv2.boundingRect(contour)
+            # print(f"Mark found at x={x}, y={y}, width={w}, height={h}")
+
+            # Draw the rectangle on the original image
+            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+     # Convert the image to JPEG
+    _, jpeg_image = cv2.imencode('.jpg', img)
+    # Save the image with rectangles
+    # cv2.imwrite("marked_image.jpg", img)
+
+    # Encode the image as a Base64 string
+    base64_image = base64.b64encode(jpeg_image.tobytes()).decode('utf-8')
 
     # 결과를 반환
     result = {
         'status': 'success',
         'message': 'Image processed successfully',
         'data': len(marks),
-        'image': base64_string
+        'image': base64_image
         # 'data': ...  # 처리된 이미지 데이터 또는 결과를 여기에 추가
     }
     return jsonify(result)

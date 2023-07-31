@@ -46,13 +46,20 @@ export default function InputOMR() {
     }
   };
 
-  const handleResponse = (response: Response) => {
-    response.json().then((data) => {
-      if (data.image) {
-        setProcessedImage(`data:image/jpeg;base64,${data.image}`);
-      }
-    });
-    router.push('/');
+  interface ResponseData {
+    status: string;
+    message: string;
+    data: number;
+    image: string;
+  }
+
+  const handleResponse = async (response: ResponseData) => {
+    if (response && response.image) {
+      setProcessedImage(`data:image/jpeg;base64,${response.image}`);
+    } else {
+      console.error('Unexpected response:', response);
+    }
+    // router.push('/');
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -86,12 +93,19 @@ export default function InputOMR() {
         // body: formData,
         body: JSON.stringify({ image: imageData }),
       }) //
-        .then((res) => {
+        .then(async (res) => {
           if (!res.ok) {
             setError(`${res.status} ${res.statusText}`);
             return;
           }
           // api로 db에 insert가 제대로 이뤄졌다면 홈 경로로 이동한다.
+          // res.text().then((text) => console.log('### Response body:', text));
+          // try {
+          //   const data = await res.json(); // Try to parse the response body
+          //   console.log('Parsed response body:', data);
+          // } catch (err) {
+          //   console.error('Failed to parse response body:', err);
+          // }
           return res.json();
           // router.push('/');
         })
@@ -157,7 +171,15 @@ export default function InputOMR() {
         </label>
         <Button text='Upload' onClick={() => {}} />
       </form>
-      {processedImage && <Image src={processedImage} alt='Processed image' />}
+      {processedImage && (
+        <Image
+          src={processedImage}
+          alt='Processed image'
+          width={650}
+          height={650}
+          layout='responsive'
+        />
+      )}
     </section>
   );
 }
