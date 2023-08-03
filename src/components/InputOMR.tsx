@@ -47,8 +47,6 @@ export default function InputOMR() {
   };
 
   interface ResponseData {
-    status: string;
-    message: string;
     data: number;
     image: string;
   }
